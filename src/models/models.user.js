@@ -32,7 +32,7 @@ const userSchema = new Schema({
     default: 'USER_ROLE',
     enum: roleValidator,
   },
-});
+}, {collection: 'users'});
 
 userSchema.plugin(uniqueValidator, {message: '{PATH} debe ser único'})
 

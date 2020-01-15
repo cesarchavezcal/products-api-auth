@@ -1,40 +1,36 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 
 const mdAuth = require('./../middlewares/middlewares.auth');
 
-const User = require('./../models/models.user');
+const Branch = require('./../models/models.branch');
+
 const app = express();
 
 //===============
-// Obtener todos los usuarios
+// Obtener sucursales
 //===============
 
 app.get('/', mdAuth.tokenVerify, (req, res, next) => {
-
-  User.find({}, 'name email image role')
-  .exec(
-    (err, users) => {
+  Branch.find({}).exec(
+    (err, branches) => {
       if(err) {
         return res.status(500).json({
           ok: false,
-          mensaje: 'Error cargando usuarios',
+          mensaje: 'Error cargando sucursales',
           errors: err
         });
       };
 
       res.status(200).json({
         ok: true,
-        users,
+        branches,
       });
     }
   );
 });
 
-
-
 //===============
-// Actualizar usuario
+// Actualizar sucursal
 //===============
 
 app.put('/:id', mdAuth.tokenVerify, (req, res) => {
@@ -42,112 +38,108 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
 
   let body = req.body;
 
-  const {name, email, password, img, role} = body;
+  const {branchName, branchAddress} = body;
 
-  User.findById( id, (err, user) => {
+  Branch.findById( id, (err, branch) => {
     if(err) {
       return res.status(500).json({
         ok: false,
-        mensaje: 'Error al buscar usuario',
+        mensaje: 'Error al buscar sucursal',
         errors: err,
       });
     };
 
-    if(!user) {
+    if(!branch) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'No se ha encontrado usuario con id:' + id,
-        errors: {message: 'No existe usuario con ese id'},
+        mensaje: 'No se ha encontrado sucursal con id:' + id,
+        errors: {message: 'No existe sucursal con ese id'},
       });
     }
 
-    user.name = name;
-    user.email = email;
-    user.role = role;
+    branch.branchName = branchName;
+    branch.branchAddress = branchAddress;
 
-    user.save((err, userSaved) => {
+    branch.save((err, branchSaved) => {
       if(err) {
         return res.status(400).json({
           ok: false,
-          mensaje: 'Error al actualizar usuario',
+          mensaje: 'Error al actualizar sucursal',
           errors: err,
         });
       }
 
-      userSaved.password = ':)';
-
       res.status(200).json({
         ok: true,
-        user: userSaved,
+        branch: branchSaved,
       });
     })
   });
 
 });
 
+
 //===============
-// Crear nuevo usuario
+// Agregar sucursal
 //===============
 
-app.post('/', mdAuth.tokenVerify, (req, res) => {
-
+app.post('/', mdAuth.tokenVerify, (req, res, next) => {
   let body = req.body;
 
-  const {name, email, password, img, role} = body;
+  const {branchName, branchAddress, user} = body;
 
-  const user = new User({
-    name,
-    email,
-    password: bcrypt.hashSync(password, 10),
-    img,
-    role
+  const branch = new Branch({
+    user,
+    branchName,
+    branchAddress,
   });
 
-  user.save((err, userSaved) => {
+  branch.save((err, branchSaved) => {
     if(err) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'Error al crear usuario',
+        mensaje: 'Error al crear sucursal',
         errors: err
       });
     };
 
     res.status(201).json({
       ok: true,
-      user: userSaved,
+      user: branchSaved,
       userToken: req.user
     });
   });
 });
 
+
 //===============
-// Eliminar usuario usando ID
+// Eliminar sucursal
 //===============
 
 app.delete('/:id', mdAuth.tokenVerify, (req, res, next) => {
 
   let id = req.params.id;
 
-  User.findByIdAndRemove(id, (err, userDeleted) => {
+  Branch.findByIdAndRemove(id, (err, branchDeleted) => {
     if(err) {
       return res.status(500).json({
         ok: false,
-        mensaje: 'Error al borrar usuario',
+        mensaje: 'Error al borrar sucursal',
         errors: err
       });
     };
 
-    if(!userDeleted) {
+    if(!branchDeleted) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'No se ha encontrado usuario con id:' + id,
-        errors: {message: 'No existe usuario con ese id'},
+        mensaje: 'No se ha encontrado sucursal con id:' + id,
+        errors: {message: 'No existe sucursal con ese id'},
       });
     }
 
     res.status(201).json({
       deleted: true,
-      user: userDeleted
+      branch: branchDeleted
     });
   })
 })
