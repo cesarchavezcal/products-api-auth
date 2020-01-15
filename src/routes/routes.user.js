@@ -1,15 +1,16 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 
-const User = require('./../models/models.user');
+const mdAuth = require('./../middlewares/middlewares.auth');
 
+const User = require('./../models/models.user');
 const app = express();
 
 //===============
 // Obtener todos los usuarios
 //===============
 
-app.get('/', (req, res, next) => {
+app.get('/', mdAuth.tokenVerify, (req, res, next) => {
 
   User.find({}, 'name email image role')
   .exec(
@@ -30,11 +31,13 @@ app.get('/', (req, res, next) => {
   );
 });
 
+
+
 //===============
 // Actualizar usuario
 //===============
 
-app.put('/:id', (req, res) => {
+app.put('/:id', mdAuth.tokenVerify, (req, res) => {
   let id = req.params.id;
 
   let body = req.body;
@@ -86,7 +89,7 @@ app.put('/:id', (req, res) => {
 // Crear nuevo usuario
 //===============
 
-app.post('/', (req, res) => {
+app.post('/', mdAuth.tokenVerify, (req, res) => {
 
   let body = req.body;
 
@@ -111,7 +114,8 @@ app.post('/', (req, res) => {
 
     res.status(201).json({
       ok: true,
-      user: userSaved
+      user: userSaved,
+      userToken: req.user
     });
 
   });
@@ -122,7 +126,7 @@ app.post('/', (req, res) => {
 // Eliminar usuario usando ID
 //===============
 
-app.delete('/:id', (req, res, next) => {
+app.delete('/:id', mdAuth.tokenVerify, (req, res, next) => {
 
   let id = req.params.id;
 
