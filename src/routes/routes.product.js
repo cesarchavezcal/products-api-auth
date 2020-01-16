@@ -1,8 +1,8 @@
 const express = require('express');
 
-const mdAuth = require('./../middlewares/middlewares.auth');
+const mdAuth = require('../middlewares/middlewares.auth');
 
-const Branch = require('./../models/models.branch');
+const Product = require('../models/models.product');
 
 const app = express();
 
@@ -15,27 +15,28 @@ app.get('/', mdAuth.tokenVerify, (req, res, next) => {
   let from = req.query.from || 0;
   from = Number(from);
 
-  Branch.find({})
+  Product.find({})
   // Pagination skipping
   .skip(from)
   // Limit number of results
   .limit(5)
   .populate('user', 'name email')
-  .exec(
-    (err, branches) => {
+  .populate('productCategory', 'categoryName')
+  .populate('branch', 'branchName branchAddress').exec(
+    (err, products) => {
       if(err) {
         return res.status(500).json({
           ok: false,
-          mensaje: 'Error cargando sucursales',
+          mensaje: 'Error cargando productos',
           errors: err
         });
       };
 
-      Branch.count({}, (err, count) => {
+      Product.count({}, (err, count) => {
         if(err) {
           return res.status(500).json({
             ok: false,
-            mensaje: 'Error cargando sucursales',
+            mensaje: 'Error cargando productos',
             errors: err
           });
         }
@@ -43,7 +44,7 @@ app.get('/', mdAuth.tokenVerify, (req, res, next) => {
         res.status(200).json({
           ok: true,
           total: count,
-          branches,
+          products,
         });
       });
     }
@@ -59,9 +60,9 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
 
   let body = req.body;
 
-  const {branchName, branchAddress} = body;
+  const {user, branch, productName, productPrice, productCategory, productQuantity} = body;
 
-  Branch.findById( id, (err, branch) => {
+  Product.findById( id, (err, product) => {
     if(err) {
       return res.status(500).json({
         ok: false,
@@ -70,7 +71,7 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
       });
     };
 
-    if(!branch) {
+    if(!product) {
       return res.status(400).json({
         ok: false,
         mensaje: 'No se ha encontrado sucursal con id:' + id,
@@ -78,21 +79,25 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
       });
     }
 
-    branch.branchName = branchName;
-    branch.branchAddress = branchAddress;
+    product.user = user,
+    product.branch = branch,
+    product.productName = productName,
+    product.productPrice = productPrice,
+    product.productCategory = productCategory,
+    product.productQuantity = productQuantity
 
-    branch.save((err, branchSaved) => {
+    product.save((err, productSaved) => {
       if(err) {
         return res.status(400).json({
           ok: false,
-          mensaje: 'Error al actualizar sucursal',
+          mensaje: 'Error al actualizar producto',
           errors: err,
         });
       }
 
       res.status(200).json({
         ok: true,
-        branch: branchSaved,
+        product: productSaved,
       });
     })
   });
@@ -107,26 +112,29 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
 app.post('/', mdAuth.tokenVerify, (req, res, next) => {
   let body = req.body;
 
-  const {branchName, branchAddress, user} = body;
+  const {user, branch, productName, productPrice, productCategory, productQuantity} = body;
 
-  const branch = new Branch({
+  const product = new Product({
     user,
-    branchName,
-    branchAddress,
+    branch,
+    productName,
+    productPrice,
+    productCategory,
+    productQuantity
   });
 
-  branch.save((err, branchSaved) => {
+  product.save((err, productSaved) => {
     if(err) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'Error al crear sucursal',
+        mensaje: 'Error al crear producto',
         errors: err
       });
     };
 
     res.status(201).json({
       ok: true,
-      user: branchSaved,
+      product: productSaved,
       userToken: req.user
     });
   });
@@ -141,26 +149,26 @@ app.delete('/:id', mdAuth.tokenVerify, (req, res, next) => {
 
   let id = req.params.id;
 
-  Branch.findByIdAndRemove(id, (err, branchDeleted) => {
+  Product.findByIdAndRemove(id, (err, productDeleted) => {
     if(err) {
       return res.status(500).json({
         ok: false,
-        mensaje: 'Error al borrar sucursal',
+        mensaje: 'Error al borrar producto ',
         errors: err
       });
     };
 
-    if(!branchDeleted) {
+    if(!productDeleted) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'No se ha encontrado sucursal con id:' + id,
-        errors: {message: 'No existe sucursal con ese id'},
+        mensaje: 'No se ha encontrado producto con id:' + id,
+        errors: {message: 'No existe producto con ese id'},
       });
     }
 
     res.status(201).json({
       deleted: true,
-      branch: branchDeleted
+      product: productDeleted
     });
   })
 })

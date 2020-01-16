@@ -20,12 +20,16 @@ mongoose.connection.openUri('mongodb://localhost:27017/productsDB',{ useNewUrlPa
 const appRoutes = require('./src/routes/routes.app');
 const userRoutes = require('./src/routes/routes.user');
 const branchRoutes = require('./src/routes/routes.branch');
+const productRoutes = require('./src/routes/routes.product');
+const categoryRoutes = require('./src/routes/routes.category');
 const authRoutes = require('./src/routes/routes.auth');
 
 // Middleware
 app.use('/user', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/branch', branchRoutes);
+app.use('/product', productRoutes);
+app.use('/category', categoryRoutes);
 app.use('/', appRoutes);
 
 // Escuchar peticiones

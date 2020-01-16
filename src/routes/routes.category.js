@@ -1,8 +1,9 @@
+
 const express = require('express');
 
-const mdAuth = require('./../middlewares/middlewares.auth');
+const mdAuth = require('../middlewares/middlewares.auth');
 
-const Branch = require('./../models/models.branch');
+const Category = require('../models/models.category');
 
 const app = express();
 
@@ -15,27 +16,27 @@ app.get('/', mdAuth.tokenVerify, (req, res, next) => {
   let from = req.query.from || 0;
   from = Number(from);
 
-  Branch.find({})
+  Category.find({})
   // Pagination skipping
   .skip(from)
   // Limit number of results
   .limit(5)
   .populate('user', 'name email')
   .exec(
-    (err, branches) => {
+    (err, categories) => {
       if(err) {
         return res.status(500).json({
           ok: false,
-          mensaje: 'Error cargando sucursales',
+          mensaje: 'Error cargando categorías',
           errors: err
         });
       };
 
-      Branch.count({}, (err, count) => {
+      Category.count({}, (err, count) => {
         if(err) {
           return res.status(500).json({
             ok: false,
-            mensaje: 'Error cargando sucursales',
+            mensaje: 'Error cargando categorías',
             errors: err
           });
         }
@@ -43,7 +44,7 @@ app.get('/', mdAuth.tokenVerify, (req, res, next) => {
         res.status(200).json({
           ok: true,
           total: count,
-          branches,
+          categories,
         });
       });
     }
@@ -59,40 +60,39 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
 
   let body = req.body;
 
-  const {branchName, branchAddress} = body;
+  const {categoryName} = body;
 
-  Branch.findById( id, (err, branch) => {
+  Category.findById( id, (err, category) => {
     if(err) {
       return res.status(500).json({
         ok: false,
-        mensaje: 'Error al buscar sucursal',
+        mensaje: 'Error al buscar categoria',
         errors: err,
       });
     };
 
-    if(!branch) {
+    if(!category) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'No se ha encontrado sucursal con id:' + id,
-        errors: {message: 'No existe sucursal con ese id'},
+        mensaje: 'No se ha encontrado categoría con id:' + id,
+        errors: {message: 'No existe categoría con ese id'},
       });
     }
 
-    branch.branchName = branchName;
-    branch.branchAddress = branchAddress;
+    category.categoryName = categoryName;
 
-    branch.save((err, branchSaved) => {
+    category.save((err, categorySaved) => {
       if(err) {
         return res.status(400).json({
           ok: false,
-          mensaje: 'Error al actualizar sucursal',
+          mensaje: 'Error al actualizar categoría',
           errors: err,
         });
       }
 
       res.status(200).json({
         ok: true,
-        branch: branchSaved,
+        category: categorySaved,
       });
     })
   });
@@ -107,26 +107,25 @@ app.put('/:id', mdAuth.tokenVerify, (req, res) => {
 app.post('/', mdAuth.tokenVerify, (req, res, next) => {
   let body = req.body;
 
-  const {branchName, branchAddress, user} = body;
+  const {categoryName, user} = body;
 
-  const branch = new Branch({
+  const category = new Category({
     user,
-    branchName,
-    branchAddress,
+    categoryName,
   });
 
-  branch.save((err, branchSaved) => {
+  category.save((err, categorySaved) => {
     if(err) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'Error al crear sucursal',
+        mensaje: 'Error al crear categoría',
         errors: err
       });
     };
 
     res.status(201).json({
       ok: true,
-      user: branchSaved,
+      category: categorySaved,
       userToken: req.user
     });
   });
@@ -141,26 +140,26 @@ app.delete('/:id', mdAuth.tokenVerify, (req, res, next) => {
 
   let id = req.params.id;
 
-  Branch.findByIdAndRemove(id, (err, branchDeleted) => {
+  Category.findByIdAndRemove(id, (err, categoryDeleted) => {
     if(err) {
       return res.status(500).json({
         ok: false,
-        mensaje: 'Error al borrar sucursal',
+        mensaje: 'Error al borrar categoría',
         errors: err
       });
     };
 
-    if(!branchDeleted) {
+    if(!categoryDeleted) {
       return res.status(400).json({
         ok: false,
-        mensaje: 'No se ha encontrado sucursal con id:' + id,
-        errors: {message: 'No existe sucursal con ese id'},
+        mensaje: 'No se ha encontrado categoría con id:' + id,
+        errors: {message: 'No existe categoría con ese id'},
       });
     }
 
     res.status(201).json({
       deleted: true,
-      branch: branchDeleted
+      category: categoryDeleted
     });
   })
 })

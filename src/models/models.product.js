@@ -22,19 +22,14 @@ const productSchema = new Schema({
     required: [true, 'Product quantity is necessary'],
   },
   productCategory: {
-    type: String,
-    required: [true, 'Product category is necessary'],
+    type: Schema.Types.ObjectId, ref: 'Category',
+    required: [true, 'User Id is necessary'],
   },
   productQuantity: {
     type: Number,
     required: [true],
     default: 1,
   },
-  productBranch: {
-    type: Number,
-    required: [true],
-    default: 1,
-  },
-}, {collection: 'users'});
+}, {collection: 'products'});
 
 module.exports = mongoose.model('Product', productSchema);

@@ -12,7 +12,15 @@ const app = express();
 
 app.get('/', mdAuth.tokenVerify, (req, res, next) => {
 
+  // Pagination from
+  let from = req.query.from || 0;
+  from = Number(from);
+
   User.find({}, 'name email image role')
+  // Pagination skipping
+  .skip(from)
+  // Limit number of results
+  .limit(5)
   .exec(
     (err, users) => {
       if(err) {
@@ -23,9 +31,20 @@ app.get('/', mdAuth.tokenVerify, (req, res, next) => {
         });
       };
 
-      res.status(200).json({
-        ok: true,
-        users,
+      User.count({}, (err, count) => {
+        if(err) {
+          return res.status(500).json({
+            ok: false,
+            mensaje: 'Error cargando usuarios',
+            errors: err
+          });
+        }
+
+        res.status(200).json({
+          ok: true,
+          total: count,
+          users,
+        });
       });
     }
   );

@@ -8,6 +8,7 @@ const branchSchema = new Schema({
     type: Schema.Types.ObjectId, ref: 'User',
     required: [true, 'User Id is necessary'],
   },
+  // Local
   branchName: {
     type: String,
     required: [true, 'Name is necessary'],
