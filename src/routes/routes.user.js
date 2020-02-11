@@ -20,7 +20,7 @@ app.get('/', mdAuth.tokenVerify, (req, res, next) => {
   // Pagination skipping
   .skip(from)
   // Limit number of results
-  .limit(5)
+  .limit(10)
   .exec(
     (err, users) => {
       if(err) {
